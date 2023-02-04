@@ -63,8 +63,18 @@ void Createfile(char add[])
         if(add[i] == '\0')
         {
             tmp_address[k] = add[i];
-            FILE* file = fopen(tmp_address,"w");
-            fclose(file);
+            FILE* file;
+            if((file = fopen(tmp_address,"r")))
+            {
+                printf("file already exists\n");
+                fclose(file);
+            }
+            else
+            {
+                file = fopen(tmp_address,"w");
+                fclose(file);
+                printf("file creation successful");
+            }
             break;
         }
         if(i != 0 && add[i] == '/')
