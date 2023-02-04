@@ -17,9 +17,10 @@ void Remove(char add[], int lin, int col, int size, char mov);
 void Copy(char add[], int lin, int col, int size, char mov);
 void Cut(char add[], int lin, int col, int size, char mov);
 void Paste(char add[], int lin, int col);
+void Undo(char add[]);
 
 char root_address[] = "C:/Users/Asus/Desktop" ;
-char val_address[] = "E:/FileVal";
+char val_address[] = "E:/FileVal/rootclone";
 int flag = 1, flag_file = 1;
 
 int main()
@@ -94,6 +95,7 @@ void CheckAddress(char add[])
 
 void Createfile(char add[])
 {
+    //normal file
     char tmp_address[1050];
     strcpy(tmp_address,root_address);
     int k = strlen(tmp_address);
@@ -122,6 +124,41 @@ void Createfile(char add[])
             _mkdir(tmp_address);
         }
         tmp_address[k] = add[i];
+    }
+    //undo file1
+    char undo_val[500];
+    strcpy(undo_val,val_address);
+    k = strlen(undo_val);
+    undo_val[k] = '\0';
+    n = strlen(add);
+    for(int i = 0; i < n+1; i++,k++)
+    {
+        if(add[i] == '\0')
+        {
+            strcat(undo_val,"-undo.txt");
+            strcat(undo_val,"\0");
+            FILE* file;
+            if((file = fopen(undo_val,"r")))
+            {
+                fclose(file);
+            }
+            else
+            {
+                file = fopen(undo_val,"w");
+                fclose(file);
+                strcat(undo_val,"V2.txt");
+                strcat(undo_val,"\0");
+                file = fopen(undo_val,"w");
+                fclose(file);
+            }
+            break;
+        }
+        if(i != 0 && add[i] == '/')
+        {
+             undo_val[k] = '\0';
+            _mkdir(undo_val);
+        }
+        undo_val[k] = add[i];
     }
 }
 
@@ -163,23 +200,22 @@ void InsertText(char add[], char txt[], int lin, int col)
     strcpy(tmp_address,root_address);
     strcat(tmp_address,add);
     //undo file
-        //char undo_val[500];
-        //strcpy(undo_val,val_address);
-        //strcat(undo_val,add);
-        //strcat(undo_val,"-undo");
-    //file to put in
+    char undo_val[500];
+    strcpy(undo_val,val_address);
+    strcat(undo_val,add);
+    strcat(undo_val,"-undo.txt\0");
+    //clone file to put in
     char tmp_val[500];
     strcpy(tmp_val,val_address);
     strcat(tmp_val,"/clone");
-    //char number in file
+    //copying file in array
     FILE* file = fopen(tmp_address,"r");
     FILE* clone = fopen(tmp_val,"w");
+    int i = 0;
+    int line = 1;
     fseek(file, 0, SEEK_END);
     int length = ftell(file);
     fseek(file, 0, SEEK_SET);
-    //copying file in array
-    int i = 0;
-    int line = 1;
     int column = 0, pos = -1;
     while(i < length)
     {
@@ -199,6 +235,23 @@ void InsertText(char add[], char txt[], int lin, int col)
     }
     fclose(file);
     fclose(clone);
+    //copying file in undo
+    file = fopen(tmp_address,"r");
+    FILE* undo = fopen(undo_val,"w");
+    fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    int j = 0;
+    line = 1;
+    while(j < length - line)
+    {
+        char c = fgetc(file);
+        fputc(c, undo);
+        j++;
+    }
+    fclose(file);
+    fclose(undo);
+    //insertion
     if(pos == -1)
         printf("This position does not exist\n");
     else
@@ -265,23 +318,22 @@ void Remove(char add[], int lin, int col, int size, char mov)
     strcpy(tmp_address,root_address);
     strcat(tmp_address,add);
     //undo file
-        //char undo_val[500];
-        //strcpy(undo_val,val_address);
-        //strcat(undo_val,add);
-        //strcat(undo_val,"-undo");
+    char undo_val[500];
+    strcpy(undo_val,val_address);
+    strcat(undo_val,add);
+    strcat(undo_val,"-undo.txt\0");
     //file to put in
     char tmp_val[500];
     strcpy(tmp_val,val_address);
     strcat(tmp_val,"/clone");
-    //char number in file
+    //copying file in array
     FILE* file = fopen(tmp_address,"r");
     FILE* clone = fopen(tmp_val,"w");
+    int i = 0;
+    int line = 1;
     fseek(file, 0, SEEK_END);
     int length = ftell(file);
     fseek(file, 0, SEEK_SET);
-    //copying file in array
-    int i = 0;
-    int line = 1;
     int column = 0, pos = -1;
     while(i < length)
     {
@@ -301,7 +353,23 @@ void Remove(char add[], int lin, int col, int size, char mov)
     }
     fclose(file);
     fclose(clone);
-    //printf("%d\n", pos);
+    //copying file in undo
+    file = fopen(tmp_address,"r");
+    FILE* undo = fopen(undo_val,"w");
+    fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    int j = 0;
+    line = 1;
+    while(j < length - line)
+    {
+        char c = fgetc(file);
+        fputc(c, undo);
+        j++;
+    }
+    fclose(file);
+    fclose(undo);
+    //removal
     if(pos == -1)
         printf("This position does not exist\n");
     else if (pos != -1 && mov == 'b')
@@ -362,11 +430,6 @@ void Copy(char add[], int lin, int col, int size, char mov)
     char tmp_address[1050];
     strcpy(tmp_address,root_address);
     strcat(tmp_address,add);
-    //undo file
-        //char undo_val[500];
-        //strcpy(undo_val,val_address);
-        //strcat(undo_val,add);
-        //strcat(undo_val,"-undo");
     //file to put in
     char tmp_val[500];
     strcpy(tmp_val,val_address);
@@ -472,10 +535,10 @@ void Cut(char add[], int lin, int col, int size, char mov)
     strcpy(tmp_address,root_address);
     strcat(tmp_address,add);
     //undo file
-        //char undo_val[500];
-        //strcpy(undo_val,val_address);
-        //strcat(undo_val,add);
-        //strcat(undo_val,"-undo");
+    char undo_val[500];
+    strcpy(undo_val,val_address);
+    strcat(undo_val,add);
+    strcat(undo_val,"-undo.txt\0");
     //file to put in
     char tmp_val[500];
     strcpy(tmp_val,val_address);
@@ -484,15 +547,14 @@ void Cut(char add[], int lin, int col, int size, char mov)
     char clipboard[500];
     strcpy(clipboard,val_address);
     strcat(clipboard,"/clipboard.txt");
-    //char number in file
+    //copying file in array
     FILE* file = fopen(tmp_address,"r");
     FILE* clone = fopen(tmp_val,"w");
+    int i = 0;
+    int line = 1;
     fseek(file, 0, SEEK_END);
     int length = ftell(file);
     fseek(file, 0, SEEK_SET);
-    //copying file in array
-    int i = 0;
-    int line = 1;
     int column = 0, pos = -1;
     while(i < length)
     {
@@ -512,6 +574,23 @@ void Cut(char add[], int lin, int col, int size, char mov)
     }
     fclose(file);
     fclose(clone);
+    //copying file in undo
+    file = fopen(tmp_address,"r");
+    FILE* undo = fopen(undo_val,"w");
+    fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    int j = 0;
+    line = 1;
+    while(j < length - line)
+    {
+        char c = fgetc(file);
+        fputc(c, undo);
+        j++;
+    }
+    fclose(file);
+    fclose(undo);
+    //cut
     if(pos == -1)
         printf("This position does not exist\n");
     else if (pos != -1 && mov == 'b')
@@ -579,10 +658,10 @@ void Paste(char add[], int lin, int col)
     strcpy(tmp_address,root_address);
     strcat(tmp_address,add);
     //undo file
-        //char undo_val[500];
-        //strcpy(undo_val,val_address);
-        //strcat(undo_val,add);
-        //strcat(undo_val,"-undo");
+    char undo_val[500];
+    strcpy(undo_val,val_address);
+    strcat(undo_val,add);
+    strcat(undo_val,"-undo.txt\0");
     //file to put in
     char tmp_val[500];
     strcpy(tmp_val,val_address);
@@ -591,15 +670,14 @@ void Paste(char add[], int lin, int col)
     char clipboard[500];
     strcpy(clipboard,val_address);
     strcat(clipboard,"/clipboard.txt");
-    //char number in file
+    //copying file in array
     FILE* file = fopen(tmp_address,"r");
     FILE* clone = fopen(tmp_val,"w");
+    int i = 0;
+    int line = 1;
     fseek(file, 0, SEEK_END);
     int length = ftell(file);
     fseek(file, 0, SEEK_SET);
-    //copying file in array
-    int i = 0;
-    int line = 1;
     int column = 0, pos = -1;
     while(i < length)
     {
@@ -619,6 +697,23 @@ void Paste(char add[], int lin, int col)
     }
     fclose(file);
     fclose(clone);
+    //copying file in undo
+    file = fopen(tmp_address,"r");
+    FILE* undo = fopen(undo_val,"w");
+    fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    int j = 0;
+    line = 1;
+    while(j < length - line)
+    {
+        char c = fgetc(file);
+        fputc(c, undo);
+        j++;
+    }
+    fclose(file);
+    fclose(undo);
+    //paste
     if(pos == -1)
         printf("This position does not exist\n");
     else
@@ -650,6 +745,113 @@ void Paste(char add[], int lin, int col)
         fclose(file);
         fclose(clone);
     }
+}
+
+void Undo(char add[])
+{
+    char tmp_address[1050];
+    strcpy(tmp_address,root_address);
+    strcat(tmp_address,add);
+    //undo file
+    char undo_val[500];
+    strcpy(undo_val,val_address);
+    strcat(undo_val,add);
+    strcat(undo_val,"-undo.txt\0");
+    //undo2 file
+    char undo_val2[500];
+    strcpy(undo_val2,undo_val);
+    strcat(undo_val2,"V2.txt\0");
+    //line num file
+    FILE* file = fopen(tmp_address,"r");
+    FILE* undo2 = fopen(undo_val2,"w");
+    int i = 0;
+    int line = 1;
+    fseek(file, 0, SEEK_END);
+    int length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    while(i < length)
+    {
+        char c = fgetc(file);
+        if(c == '\n')
+        {
+            line++;
+        }
+        i++;
+    }
+    //copying file in undo2
+    fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    int j = 0;
+    while(j < length - line + 1)
+    {
+        char c = fgetc(file);
+        fputc(c, undo2);
+        j++;
+    }
+    fclose(file);
+    fclose(undo2);
+    //line num undo
+    FILE* undo = fopen(undo_val,"r");
+    file = fopen(tmp_address,"w");
+    i = 0;
+    line = 1;
+    fseek(undo, 0, SEEK_END);
+    length = ftell(undo);
+    fseek(undo, 0, SEEK_SET);
+    while(i < length)
+    {
+        char c = fgetc(undo);
+        if(c == '\n')
+        {
+            line++;
+        }
+        i++;
+    }
+    //copying undo in file
+    fseek(undo, 0, SEEK_END);
+    length = ftell(undo);
+    fseek(undo, 0, SEEK_SET);
+    j = 0;
+    while(j < length - line + 1)
+    {
+        char c = fgetc(undo);
+        fputc(c, file);
+        j++;
+    }
+    fclose(file);
+    fclose(undo);
+    //line num undo2
+    undo2 = fopen(undo_val2,"r");
+    undo = fopen(undo_val,"w");
+    i = 0;
+    line = 1;
+    fseek(undo2, 0, SEEK_END);
+    length = ftell(undo2);
+    fseek(undo2, 0, SEEK_SET);
+    while(i < length)
+    {
+        char c = fgetc(undo2);
+        if(c == '\n')
+        {
+            line++;
+        }
+        i++;
+    }
+    //copying undo2 in undo
+    fseek(undo2, 0, SEEK_END);
+    length = ftell(undo2);
+    fseek(undo2, 0, SEEK_SET);
+    j = 0;
+    while(j < length - line + 1)
+    {
+        char c = fgetc(undo2);
+        fputc(c, undo);
+        j++;
+    }
+    fclose(undo);
+    fclose(undo2);
+    printf("Undo successful\n");
 }
 
 void CommandInput()
@@ -827,6 +1029,22 @@ void CommandInput()
                 c = getchar();
                 scanf("%d", &col);
                 Paste(address, lin, col);
+            }
+        }
+    }
+    else if(!strcmp(command,"undo"))
+    {
+        scanf("%s", Input_Type);
+        if(!(strcmp(Input_Type,"--file")))
+        {
+            AddressInput(address);
+            CheckAddress(address);
+            if(flag_file == 1)
+            {
+                Undo(address);
+                char c;
+                while((c = getchar()) != '\n')
+                    continue;
             }
         }
     }
