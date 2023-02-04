@@ -13,6 +13,7 @@ void CheckAddress(char add[]);
 void TextInput(char txt[]);
 void InsertText(char add[], char txt[], int lin, int col);
 void Cat(char add[]);
+void Remove(char add[], int lin, int col, int size, char mov);
 
 char root_address[] = "C:/Users/Asus/Desktop" ;
 char val_address[] = "E:/FileVal";
@@ -127,9 +128,9 @@ void TextInput(char txt[])
     int i;
     while((c = getchar()) == ' ')
         continue;
-    if(c == '/')
+    if(c != '"')
     {
-        txt[0] = '/';
+        txt[0] = c;
         i = 1;
         while(1)
         {
@@ -159,10 +160,10 @@ void InsertText(char add[], char txt[], int lin, int col)
     strcpy(tmp_address,root_address);
     strcat(tmp_address,add);
     //undo file
-    char undo_val[500];
-    strcpy(undo_val,val_address);
-    strcat(undo_val,add);
-    strcat(undo_val,"-undo");
+        //char undo_val[500];
+        //strcpy(undo_val,val_address);
+        //strcat(undo_val,add);
+        //strcat(undo_val,"-undo");
     //file to put in
     char tmp_val[500];
     strcpy(tmp_val,val_address);
@@ -204,7 +205,7 @@ void InsertText(char add[], char txt[], int lin, int col)
         FILE* clone = fopen(tmp_val,"r");
         while(k < length-line+1)
         {
-            if(k == pos-2)
+            if(k == pos-1)
             {
                 for(int j = 0; j < strlen(txt); j++)
                 {
@@ -253,6 +254,103 @@ void Cat(char add[])
     printf("\n");
 }
 
+void Remove(char add[], int lin, int col, int size, char mov)
+{
+    char tmp_address[1050];
+    strcpy(tmp_address,root_address);
+    strcat(tmp_address,add);
+    //undo file
+        //char undo_val[500];
+        //strcpy(undo_val,val_address);
+        //strcat(undo_val,add);
+        //strcat(undo_val,"-undo");
+    //file to put in
+    char tmp_val[500];
+    strcpy(tmp_val,val_address);
+    strcat(tmp_val,"/clone");
+    //char number in file
+    FILE* file = fopen(tmp_address,"r");
+    FILE* clone = fopen(tmp_val,"w");
+    fseek(file, 0, SEEK_END);
+    int length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    //copying file in array
+    int i = 0;
+    int line = 1;
+    int column = 0, pos = -1;
+    while(i < length)
+    {
+        char c = fgetc(file);
+        fputc(c, clone);
+        if(c == '\n')
+        {
+            line++;
+            column = 0;
+        }
+        if(line == lin && column == col)
+        {
+            pos = ftell(file);
+        }
+        column++;
+        i++;
+    }
+    fclose(file);
+    fclose(clone);
+    //printf("%d\n", pos);
+    if(pos == -1)
+        printf("This position does not exist\n");
+    else if (pos != -1 && mov == 'b')
+    {
+        if(pos <= size)
+            size = pos - 1;
+        if(pos+size-1 >= length)
+            size = length - pos + 1;
+        int k = 0;
+        FILE* file = fopen(tmp_address,"w");
+        FILE* clone = fopen(tmp_val,"r");
+        while(k < length-line+1)
+        {
+            if(k == pos-size-1)
+            {
+                k += size;
+                while(size > 0)
+                {
+                    char c = fgetc(clone);
+                    size--;
+                }
+            }
+            char c = fgetc(clone);
+            fprintf(file, "%c", c);
+            k++;
+        }
+        printf("backward removal successful\n");
+        fclose(file);
+    }
+    else if (pos != -1 && mov == 'f')
+    {
+        int k = 0;
+        FILE* file = fopen(tmp_address,"w");
+        FILE* clone = fopen(tmp_val,"r");
+        while(k < length-line+1)
+        {
+            if(k == pos-1)
+            {
+                k += size;
+                while(size > 0)
+                {
+                    char c = fgetc(clone);
+                    size--;
+                }
+            }
+            char c = fgetc(clone);
+            fprintf(file, "%c", c);
+            k++;
+        }
+        printf("forward removal successful\n");
+        fclose(file);
+    }
+}
+
 void CommandInput()
 {
     char address[1000];
@@ -272,7 +370,7 @@ void CommandInput()
                 continue;
         }
     }
-    else if(!strcmp(command,"insertstr"))
+    else if(!strcmp(command,"insert"))
     {
         scanf("%s", Input_Type);
         if(!(strcmp(Input_Type,"--file")))
@@ -302,14 +400,50 @@ void CommandInput()
     }
     else if(!strcmp(command,"cat"))
     {
-        AddressInput(address);
-        CheckAddress(address);
-        if(flag_file == 1)
+        scanf("%s", Input_Type);
+        if(!(strcmp(Input_Type,"--file")))
         {
-            Cat(address);
-            char c;
-            while((c = getchar()) != '\n')
+            AddressInput(address);
+            CheckAddress(address);
+            if(flag_file == 1)
+            {
+                Cat(address);
+                char c;
+                while((c = getchar()) != '\n')
                     continue;
+            }
+        }
+    }
+    else if(!strcmp(command,"remove"))
+    {
+        scanf("%s", Input_Type);
+        if(!(strcmp(Input_Type,"--file")))
+        {
+            AddressInput(address);
+            CheckAddress(address);
+            scanf("%s", Input_Type);
+            if(!(strcmp(Input_Type,"--pos")) && flag_file == 1)
+            {
+                int lin,col;
+                char c;
+                scanf("%d", &lin);
+                c = getchar();
+                scanf("%d", &col);
+                while((c = getchar()) == ' ')
+                    continue;
+                scanf("%s", Input_Type);
+                if(!(strcmp(Input_Type,"size")))
+                {
+                    int size;
+                    scanf("%d", &size);
+                    while((c = getchar()) == ' ')
+                        continue;
+                    char mov = getchar();
+                    Remove(address, lin, col, size, mov);
+                    while((c = getchar()) != '\n')
+                        continue;
+                }
+            }
         }
     }
     else if(!strcmp(command,"exit"))
