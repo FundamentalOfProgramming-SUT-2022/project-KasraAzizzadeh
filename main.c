@@ -14,6 +14,9 @@ void TextInput(char txt[]);
 void InsertText(char add[], char txt[], int lin, int col);
 void Cat(char add[]);
 void Remove(char add[], int lin, int col, int size, char mov);
+void Copy(char add[], int lin, int col, int size, char mov);
+void Cut(char add[], int lin, int col, int size, char mov);
+void Paste(char add[], int lin, int col);
 
 char root_address[] = "C:/Users/Asus/Desktop" ;
 char val_address[] = "E:/FileVal";
@@ -233,6 +236,7 @@ void InsertText(char add[], char txt[], int lin, int col)
         }
         printf("insertion successful\n");
         fclose(file);
+        fclose(clone);
     }
 }
 
@@ -251,6 +255,7 @@ void Cat(char add[])
         char c = fgetc(file);
         printf("%c", c);
     }
+    fclose(file);
     printf("\n");
 }
 
@@ -348,6 +353,302 @@ void Remove(char add[], int lin, int col, int size, char mov)
         }
         printf("forward removal successful\n");
         fclose(file);
+        fclose(clone);
+    }
+}
+
+void Copy(char add[], int lin, int col, int size, char mov)
+{
+    char tmp_address[1050];
+    strcpy(tmp_address,root_address);
+    strcat(tmp_address,add);
+    //undo file
+        //char undo_val[500];
+        //strcpy(undo_val,val_address);
+        //strcat(undo_val,add);
+        //strcat(undo_val,"-undo");
+    //file to put in
+    char tmp_val[500];
+    strcpy(tmp_val,val_address);
+    strcat(tmp_val,"/clone");
+    //clipboard address
+    char clipboard[500];
+    strcpy(clipboard,val_address);
+    strcat(clipboard,"/clipboard.txt");
+    //char number in file
+    FILE* file = fopen(tmp_address,"r");
+    FILE* clone = fopen(tmp_val,"w");
+    fseek(file, 0, SEEK_END);
+    int length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    //copying file in array
+    int i = 0;
+    int line = 1;
+    int column = 0, pos = -1;
+    while(i < length)
+    {
+        char c = fgetc(file);
+        fputc(c, clone);
+        if(c == '\n')
+        {
+            line++;
+            column = 0;
+        }
+        if(line == lin && column == col)
+        {
+            pos = ftell(file);
+        }
+        column++;
+        i++;
+    }
+    fclose(file);
+    fclose(clone);
+    if(pos == -1)
+        printf("This position does not exist\n");
+    else if (pos != -1 && mov == 'b')
+    {
+        if(pos <= size)
+            size = pos - 1;
+        if(pos+size-1 >= length)
+            size = length - pos + 1;
+        int k = 0;
+        FILE* file = fopen(tmp_address,"w");
+        FILE* clone = fopen(tmp_val,"r");
+        while(k < length-line+1)
+        {
+            if(k == pos-size-1)
+            {
+                k += size;
+                FILE* board = fopen(clipboard,"w");
+                while(size > 0)
+                {
+                    char c = fgetc(clone);
+                    fprintf(board, "%c", c);
+                    fprintf(file, "%c", c);
+                    size--;
+                }
+                fclose(board);
+            }
+            char c = fgetc(clone);
+            fprintf(file, "%c", c);
+            k++;
+        }
+        printf("backward copy successful\n");
+        fclose(file);
+    }
+    else if (pos != -1 && mov == 'f')
+    {
+        int k = 0;
+        FILE* file = fopen(tmp_address,"w");
+        FILE* clone = fopen(tmp_val,"r");
+        while(k < length-line+1)
+        {
+            if(k == pos-1)
+            {
+                k += size;
+                FILE* board = fopen(clipboard,"w");
+                while(size > 0)
+                {
+                    char c = fgetc(clone);
+                    fprintf(file, "%c", c);
+                    fprintf(board, "%c", c);
+                    size--;
+                }
+                fclose(board);
+            }
+            char c = fgetc(clone);
+            fprintf(file, "%c", c);
+            k++;
+        }
+        printf("forward copy successful\n");
+        fclose(file);
+        fclose(clone);
+    }
+}
+
+void Cut(char add[], int lin, int col, int size, char mov)
+{
+    char tmp_address[1050];
+    strcpy(tmp_address,root_address);
+    strcat(tmp_address,add);
+    //undo file
+        //char undo_val[500];
+        //strcpy(undo_val,val_address);
+        //strcat(undo_val,add);
+        //strcat(undo_val,"-undo");
+    //file to put in
+    char tmp_val[500];
+    strcpy(tmp_val,val_address);
+    strcat(tmp_val,"/clone");
+    //clipboard address
+    char clipboard[500];
+    strcpy(clipboard,val_address);
+    strcat(clipboard,"/clipboard.txt");
+    //char number in file
+    FILE* file = fopen(tmp_address,"r");
+    FILE* clone = fopen(tmp_val,"w");
+    fseek(file, 0, SEEK_END);
+    int length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    //copying file in array
+    int i = 0;
+    int line = 1;
+    int column = 0, pos = -1;
+    while(i < length)
+    {
+        char c = fgetc(file);
+        fputc(c, clone);
+        if(c == '\n')
+        {
+            line++;
+            column = 0;
+        }
+        if(line == lin && column == col)
+        {
+            pos = ftell(file);
+        }
+        column++;
+        i++;
+    }
+    fclose(file);
+    fclose(clone);
+    if(pos == -1)
+        printf("This position does not exist\n");
+    else if (pos != -1 && mov == 'b')
+    {
+        if(pos <= size)
+            size = pos - 1;
+        if(pos+size-1 >= length)
+            size = length - pos + 1;
+        int k = 0;
+        FILE* file = fopen(tmp_address,"w");
+        FILE* clone = fopen(tmp_val,"r");
+        while(k < length-line+1)
+        {
+            if(k == pos-size-1)
+            {
+                k += size;
+                FILE* board = fopen(clipboard,"w");
+                while(size > 0)
+                {
+                    char c = fgetc(clone);
+                    fprintf(board, "%c", c);
+                    size--;
+                }
+                fclose(board);
+            }
+            char c = fgetc(clone);
+            fprintf(file, "%c", c);
+            k++;
+        }
+        printf("backward copy successful\n");
+        fclose(file);
+    }
+    else if (pos != -1 && mov == 'f')
+    {
+        int k = 0;
+        FILE* file = fopen(tmp_address,"w");
+        FILE* clone = fopen(tmp_val,"r");
+        while(k < length-line+1)
+        {
+            if(k == pos-1)
+            {
+                k += size;
+                FILE* board = fopen(clipboard,"w");
+                while(size > 0)
+                {
+                    char c = fgetc(clone);
+                    fprintf(board, "%c", c);
+                    size--;
+                }
+                fclose(board);
+            }
+            char c = fgetc(clone);
+            fprintf(file, "%c", c);
+            k++;
+        }
+        printf("forward cut successful\n");
+        fclose(file);
+        fclose(clone);
+    }
+}
+
+void Paste(char add[], int lin, int col)
+{
+    char tmp_address[1050];
+    strcpy(tmp_address,root_address);
+    strcat(tmp_address,add);
+    //undo file
+        //char undo_val[500];
+        //strcpy(undo_val,val_address);
+        //strcat(undo_val,add);
+        //strcat(undo_val,"-undo");
+    //file to put in
+    char tmp_val[500];
+    strcpy(tmp_val,val_address);
+    strcat(tmp_val,"/clone");
+    //clipboard address
+    char clipboard[500];
+    strcpy(clipboard,val_address);
+    strcat(clipboard,"/clipboard.txt");
+    //char number in file
+    FILE* file = fopen(tmp_address,"r");
+    FILE* clone = fopen(tmp_val,"w");
+    fseek(file, 0, SEEK_END);
+    int length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    //copying file in array
+    int i = 0;
+    int line = 1;
+    int column = 0, pos = -1;
+    while(i < length)
+    {
+        char c = fgetc(file);
+        fputc(c, clone);
+        if(c == '\n')
+        {
+            line++;
+            column = 0;
+        }
+        if(line == lin && column == col)
+        {
+            pos = ftell(file);
+        }
+        column++;
+        i++;
+    }
+    fclose(file);
+    fclose(clone);
+    if(pos == -1)
+        printf("This position does not exist\n");
+    else
+    {
+        int k = 0;
+        FILE* file = fopen(tmp_address,"w");
+        FILE* clone = fopen(tmp_val,"r");
+        while(k < length-line+1)
+        {
+            if(k == pos-1)
+            {
+                FILE* board = fopen(clipboard,"r");
+                fseek(board, 0, SEEK_END);
+                int size = ftell(board);
+                fseek(board, 0, SEEK_SET);
+                while(size > 0)
+                {
+                    char c = fgetc(board);
+                    fprintf(file, "%c", c);
+                    size--;
+                }
+                fclose(board);
+            }
+            char c = fgetc(clone);
+            fprintf(file, "%c", c);
+            k++;
+        }
+        printf("paste successful\n");
+        fclose(file);
+        fclose(clone);
     }
 }
 
@@ -443,6 +744,89 @@ void CommandInput()
                     while((c = getchar()) != '\n')
                         continue;
                 }
+            }
+        }
+    }
+    else if(!strcmp(command,"copy"))
+    {
+        scanf("%s", Input_Type);
+        if(!(strcmp(Input_Type,"--file")))
+        {
+            AddressInput(address);
+            CheckAddress(address);
+            scanf("%s", Input_Type);
+            if(!(strcmp(Input_Type,"--pos")) && flag_file == 1)
+            {
+                int lin,col;
+                char c;
+                scanf("%d", &lin);
+                c = getchar();
+                scanf("%d", &col);
+                while((c = getchar()) == ' ')
+                    continue;
+                scanf("%s", Input_Type);
+                if(!(strcmp(Input_Type,"size")))
+                {
+                    int size;
+                    scanf("%d", &size);
+                    while((c = getchar()) == ' ')
+                        continue;
+                    char mov = getchar();
+                    Copy(address, lin, col, size, mov);
+                    while((c = getchar()) != '\n')
+                        continue;
+                }
+            }
+        }
+    }
+    else if(!strcmp(command,"cut"))
+    {
+        scanf("%s", Input_Type);
+        if(!(strcmp(Input_Type,"--file")))
+        {
+            AddressInput(address);
+            CheckAddress(address);
+            scanf("%s", Input_Type);
+            if(!(strcmp(Input_Type,"--pos")) && flag_file == 1)
+            {
+                int lin,col;
+                char c;
+                scanf("%d", &lin);
+                c = getchar();
+                scanf("%d", &col);
+                while((c = getchar()) == ' ')
+                    continue;
+                scanf("%s", Input_Type);
+                if(!(strcmp(Input_Type,"size")))
+                {
+                    int size;
+                    scanf("%d", &size);
+                    while((c = getchar()) == ' ')
+                        continue;
+                    char mov = getchar();
+                    Cut(address, lin, col, size, mov);
+                    while((c = getchar()) != '\n')
+                        continue;
+                }
+            }
+        }
+    }
+    else if(!strcmp(command,"paste"))
+    {
+        scanf("%s", Input_Type);
+        if(!(strcmp(Input_Type,"--file")))
+        {
+            AddressInput(address);
+            CheckAddress(address);
+            scanf("%s", Input_Type);
+            if(!(strcmp(Input_Type,"--pos")) && flag_file == 1)
+            {
+                int lin,col;
+                char c;
+                scanf("%d", &lin);
+                c = getchar();
+                scanf("%d", &col);
+                Paste(address, lin, col);
             }
         }
     }
