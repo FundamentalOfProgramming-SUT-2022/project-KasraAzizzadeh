@@ -22,10 +22,6 @@ int main()
 
 void AddressInput(char a[])
 {
-    for(int i = 0; i < strlen(a); i++)
-    {
-        a[i] = '\0';
-    }
     char c;
     int i;
     while((c = getchar()) == ' ')
@@ -53,6 +49,7 @@ void AddressInput(char a[])
             i++;
         }
     }
+    a[i] = '\0';
 }
 
 void Createfile(char add[])
@@ -61,18 +58,20 @@ void Createfile(char add[])
     strcpy(tmp_address,root_address);
     int k = strlen(tmp_address);
     int n = strlen(add);
-    for(int i = 0; i < n; i++,k++)
+    for(int i = 0; i < n+1; i++,k++)
     {
+        if(add[i] == '\0')
+        {
+            tmp_address[k] = add[i];
+            FILE* file = fopen(tmp_address,"w");
+            fclose(file);
+            break;
+        }
         if(i != 0 && add[i] == '/')
         {
             _mkdir(tmp_address);
         }
         tmp_address[k] = add[i];
-        if(add[i] == '\0')
-        {
-            FILE* file = fopen(tmp_address,"w");
-            fclose(file);
-        }
     }
 }
 
