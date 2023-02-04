@@ -109,7 +109,7 @@ void Createfile(char add[])
             {
                 file = fopen(tmp_address,"w");
                 fclose(file);
-                printf("file creation successful");
+                printf("file creation successful\n");
             }
             break;
         }
@@ -158,24 +158,30 @@ void InsertText(char add[], char txt[], int lin, int col)
     char tmp_address[1050];
     strcpy(tmp_address,root_address);
     strcat(tmp_address,add);
-        //char tmp_val[500]
-        //strcpy(tmp_val,val_address);
-        //strcat(tmp_val,"/clone");
+    //undo file
+    char undo_val[500];
+    strcpy(undo_val,val_address);
+    strcat(undo_val,add);
+    strcat(undo_val,"-undo");
+    //file to put in
+    char tmp_val[500];
+    strcpy(tmp_val,val_address);
+    strcat(tmp_val,"/clone");
     //char number in file
     FILE* file = fopen(tmp_address,"r");
+    FILE* clone = fopen(tmp_val,"w");
     fseek(file, 0, SEEK_END);
     int length = ftell(file);
     fseek(file, 0, SEEK_SET);
     //copying file in array
-    char* str = malloc(sizeof(char)*length);
     int i = 0;
     int line = 1;
     int column = 0, pos = -1;
     while(i < length)
     {
-        column++;
-        *(str+i) = fgetc(file);
-        if(*(str+i) == '\n')
+        char c = fgetc(file);
+        fputc(c, clone);
+        if(c == '\n')
         {
             line++;
             column = 0;
@@ -184,19 +190,21 @@ void InsertText(char add[], char txt[], int lin, int col)
         {
             pos = ftell(file);
         }
+        column++;
         i++;
     }
-    *(str+i-line+1) = '\0';
     fclose(file);
+    fclose(clone);
     if(pos == -1)
         printf("This position does not exist\n");
     else
     {
         int k = 0;
         FILE* file = fopen(tmp_address,"w");
-        while(*(str+k)!='\0')
+        FILE* clone = fopen(tmp_val,"r");
+        while(k < length-line+1)
         {
-            if(k == pos-1)
+            if(k == pos-2)
             {
                 for(int j = 0; j < strlen(txt); j++)
                 {
@@ -218,13 +226,13 @@ void InsertText(char add[], char txt[], int lin, int col)
                     fprintf(file, "%c", txt[j]);
                 }
             }
-            fprintf(file, "%c", *(str+k));
+            char c = fgetc(clone);
+            fprintf(file, "%c", c);
             k++;
         }
         printf("insertion successful\n");
         fclose(file);
     }
-    free(str);
 }
 
 void Cat(char add[])
