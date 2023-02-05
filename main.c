@@ -18,6 +18,7 @@ void Copy(char add[], int lin, int col, int size, char mov);
 void Cut(char add[], int lin, int col, int size, char mov);
 void Paste(char add[], int lin, int col);
 void Undo(char add[]);
+void Compare(char add[], char add2[]);
 
 char root_address[] = "C:/Users/Asus/Desktop" ;
 char val_address[] = "E:/FileVal/rootclone";
@@ -854,9 +855,222 @@ void Undo(char add[])
     printf("Undo successful\n");
 }
 
+void Compare(char add[], char add2[])
+{
+    //add1
+    char tmp_address[1050];
+    strcpy(tmp_address,root_address);
+    strcat(tmp_address,add);
+    //add2
+    char tmp_address2[1050];
+    strcpy(tmp_address2,root_address);
+    strcat(tmp_address2,add2);
+    //clone1 file to put in
+    char tmp_val[500];
+    strcpy(tmp_val,val_address);
+    strcat(tmp_val,"/clone");
+    //clone2 file to put in
+    char tmp_val2[500];
+    strcpy(tmp_val2,val_address);
+    strcat(tmp_val2,"/clone2");
+    //copying file in clone1
+    FILE* file = fopen(tmp_address,"r");
+    FILE* clone = fopen(tmp_val,"w");
+    int i = 0;
+    int line = 1;
+    fseek(file, 0, SEEK_END);
+    int length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    while(i < length)
+    {
+        char c = fgetc(file);
+        fputc(c, clone);
+        if(c == '\n')
+        {
+            line++;
+        }
+        i++;
+    }
+    fclose(file);
+    fclose(clone);
+    //copying file2 in clone2
+    FILE* file2 = fopen(tmp_address2,"r");
+    FILE* clone2 = fopen(tmp_val2,"w");
+    int i2 = 0;
+    int line2 = 1;
+    fseek(file2, 0, SEEK_END);
+    int length2 = ftell(file2);
+    fseek(file2, 0, SEEK_SET);
+    while(i2 < length2)
+    {
+        char c = fgetc(file2);
+        fputc(c, clone2);
+        if(c == '\n')
+        {
+            line2++;
+        }
+        i2++;
+    }
+    fclose(file2);
+    fclose(clone2);
+    clone = fopen(tmp_val,"r");
+    clone2 = fopen(tmp_val2,"r");
+    int l1 = 1,l2 = 1;
+    int k1 = 0,k2 = 0;
+    if(line2 < line)
+    {
+        while(l1 <= line2)
+        {
+            char* lane1 = calloc(1500,sizeof(char));
+            char* lane2 = calloc(1500,sizeof(char));
+            int j1 = 0,j2 = 0;
+            while(k1 < length - line + 1)
+            {
+                lane1[j1] = fgetc(clone);
+                if(lane1[j1] == '\n')
+                    break;
+                j1++;
+                k1++;
+            }
+            while(k2 < length2 - line2 + 1)
+            {
+                lane2[j2] = fgetc(clone2);
+                if(lane2[j2] == '\n')
+                    break;
+                j2++;
+                k2++;
+            }
+            if((strcmp(lane1,lane2)))
+            {
+                printf("================#%d===============\n", l1);
+                printf("%s", lane1);
+                printf("%s", lane2);
+                if(l1 == line2)
+                    printf("\n");
+            }
+            l1++;
+            l2++;
+            free(lane1);
+            free(lane2);
+        }
+        printf("================#%d-#%d===============\n", l1, line);
+        while(l1 > line2 && l1 <= line)
+        {
+            char* lane1 = calloc(1500,sizeof(char));
+            int j1 = 0;
+            while(k1 < length - line + 1)
+            {
+                lane1[j1] = fgetc(clone);
+                if(lane1[j1] == '\n')
+                    break;
+                j1++;
+                k1++;
+            }
+            printf("%s", lane1);
+            l1++;
+            free(lane1);
+        }
+    }
+    else if(line2 > line)
+    {
+        while(l2 <= line)
+        {
+            char* lane1 = calloc(1500,sizeof(char));
+            char* lane2 = calloc(1500,sizeof(char));
+            int j1 = 0,j2 = 0;
+            while(k1 < length - line + 1)
+            {
+                lane1[j1] = fgetc(clone);
+                if(lane1[j1] == '\n')
+                    break;
+                j1++;
+                k1++;
+            }
+            while(k2 < length2 - line2 + 1)
+            {
+                lane2[j2] = fgetc(clone2);
+                if(lane2[j2] == '\n')
+                    break;
+                j2++;
+                k2++;
+            }
+            if((strcmp(lane1,lane2)))
+            {
+                printf("================#%d===============\n", l2);
+                printf("%s", lane1);
+                if(line == l2)
+                    printf("\n");
+                printf("%s", lane2);
+            }
+            l1++;
+            l2++;
+            free(lane1);
+            free(lane2);
+        }
+        printf("================#%d-#%d===============\n", l2, line2);
+        while(l2 > line && l2 <= line2)
+        {
+            char* lane2 = calloc(1500,sizeof(char));
+            int j2 = 0;
+            while(k2 < length2 - line2 + 1)
+            {
+                lane2[j2] = fgetc(clone2);
+                if(lane2[j2] == '\n')
+                    break;
+                j2++;
+                k2++;
+            }
+            printf("%s", lane2);
+            l2++;
+            free(lane2);
+        }
+    }
+    else if(line2 == line)
+    {
+        while(l2 <= line)
+        {
+            char* lane1 = calloc(1500,sizeof(char));
+            char* lane2 = calloc(1500,sizeof(char));
+            int j1 = 0,j2 = 0;
+            while(k1 < length - line + 1)
+            {
+                lane1[j1] = fgetc(clone);
+                if(lane1[j1] == '\n')
+                    break;
+                j1++;
+                k1++;
+            }
+            while(k2 < length2 - line2 + 1)
+            {
+                lane2[j2] = fgetc(clone2);
+                if(lane2[j2] == '\n')
+                    break;
+                j2++;
+                k2++;
+            }
+            if((strcmp(lane1,lane2)))
+            {
+                printf("================#%d===============\n", l2);
+                printf("%s", lane1);
+                if(l2 == line)
+                    printf("\n");
+                printf("%s", lane2);
+            }
+            l1++;
+            l2++;
+            free(lane1);
+            free(lane2);
+        }
+    }
+    fclose(clone);
+    fclose(clone2);
+    printf("\n--------------------------------\nComparation successful\n");
+}
+
 void CommandInput()
 {
     char address[1000];
+    char address2[1000];
     char command[30];
     char Input_Type[10];
     scanf("%s", command);
@@ -1042,6 +1256,23 @@ void CommandInput()
             if(flag_file == 1)
             {
                 Undo(address);
+                char c;
+                while((c = getchar()) != '\n')
+                    continue;
+            }
+        }
+    }
+    else if(!strcmp(command,"compare"))
+    {
+        AddressInput(address);
+        CheckAddress(address);
+        if(flag_file == 1)
+        {
+            AddressInput(address2);
+            CheckAddress(address2);
+            if(flag_file == 1)
+            {
+                Compare(address, address2);
                 char c;
                 while((c = getchar()) != '\n')
                     continue;
